@@ -63,7 +63,7 @@ There are 8 problem sets to analyze. Some are skbs where as others are linear.
 >>> Control: <br/>
 >>> Treatment1: First two correct. assistment_id: ***1355695***<br/>
 >>> Treatment2: In the first two one or more incorrect. assistment_id: ***1355695***<br/>
->>> "ignore_guide_problems" ***1277136*** 
+>>> "ignore_guide_problems" ***1277136*** <br/>
 >> Posttest: 2 are real probelms.***1355456, 1355457***<br/> 
 > 
 >> PSAV89B: <br/>
