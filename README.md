@@ -72,15 +72,15 @@ There are 8 problem sets to analyze. Some are skbs where as others are linear.
 >>> Treatement2(4 to mastery)/only 3 messages: Plain message. ***525091, 525050, 525090***<br/>
 >>> Control(3 to mastery): No message. <br/>
 >> Problem to mastery<br/>
-> 
+>
 >> PSAWU6Z: <br/>
->> Adding and Subtracting Mixed Fractions 5.NF.A.1 Ex<br/>
->> Has competence check.***1498223***<br/>
+>> Multiplying Mixed Numbers 5.NF.B.4a EX<br/>
 >>> Experiment: <br/>
->>> Treatement: Encouragement ***1495245, 1495246, 1495247***<br/>
->>> Control: No Encouragement<br/>
->> Posttest: 3 probelms in test mode***1505320***; last 2 are real probelms.***1215094, 1215093***<br/>
- 
+>>> Treatement(4 to mastery)/only 3 messages: Competency check. ***525061, 525087, 525088***<br/>
+>>> Treatement(4 to mastery)/only 3 messages: Plain message. ***525091, 525050, 525090***<br/>
+>>> Control(3 to mastery): No message<br/>
+>> Problem to mastery<br/>
+>
 
 
 
