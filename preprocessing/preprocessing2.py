@@ -24,7 +24,7 @@ def parse_PSA2KNM(df):
                 if (1356360 in problem_ids) and (not assigned):
                     df.loc[
                         ((df.psa_id == "PSA2KNM") & (df.user_id == user_id)), "control_treatments"] = "treatment2:video"
-                elif (1356360 in problem_ids) and (not assigned):
+                elif (1356360 in problem_ids) and assigned:
                     df.loc[
                         ((df.psa_id == "PSA2KNM") & (df.user_id == user_id)), "control_treatments"] = "both_treatments"
 
@@ -57,14 +57,14 @@ def parse_PSA2KNP(df):
                 if (1356360 in problem_ids) and (not assigned):
                     df.loc[
                         ((df.psa_id == "PSA2KNP") & (df.user_id == user_id)), "control_treatments"] = "treatment2:video"
-                elif (1356360 in problem_ids) and (not assigned):
+                elif (1356360 in problem_ids) and assigned:
                     df.loc[
                         ((df.psa_id == "PSA2KNP") & (df.user_id == user_id)), "control_treatments"] = "both_treatments"
 
                 df.loc[((df.psa_id == "PSA2KNP") & (df.user_id == user_id) &
                         (df.problem_id.isin([1352945]))), "control_treatments"] = "video_check_passed"
                 df.loc[((df.psa_id == "PSA2KNP") & (df.user_id == user_id) &
-                        (df.problem_id.isin([1277136, 1390194]))), "control_treatments"] = "ignore_guide_problems"
+                        (df.problem_id.isin([1277136, 1390194, 1356358]))), "control_treatments"] = "ignore_guide_problems"
                 df.loc[((df.psa_id == "PSA2KNP") & (df.user_id == user_id) &
                         (df.problem_id.isin([1222222, 1222224]))), "control_treatments"] = "posttest"
             else:
@@ -191,7 +191,7 @@ df_v2 = parse_PSA59TQ(df_v2)
 print("DONE:: -> parse_PSA59TQ(df_v2)")
 df_v2 = parse_PSA7GUA(df_v2)
 print("DONE:: -> parse_PSA7GUA(df_v2)")
-df_v2 = df_v2.loc[~df_v2.control_treatments.isna()]
+df_v2 = df_v2.loc[~(df_v2.control_treatments == 'unassigned')]
 
 # 'name', 'student_class_id', 'teacher_id',
 # 'academic_year', 'pra_id', 'parent_ids', 'section_types',
@@ -232,3 +232,22 @@ df_v2_ = df_v2[['problem_log_id', 'assignment_id', 'problem_id', 'continuous_sco
 
 df_v1_.to_csv("../Data/raw0.2/motivational_v1.csv", index=False)
 df_v2_.to_csv("../Data/raw0.2/motivational_v2.csv", index=False)
+
+print(df_v1_.groupby(['psa_id', 'control_treatments']).size().reset_index(name='frequency'))
+print(df_v2_.groupby(['psa_id', 'control_treatments']).size().reset_index(name='frequency'))
+
+# control_treatment_breakdown = pd.read_csv("../Data/raw0.0/rds_dev_PSA_agg_motivational_v1_v2.csv")
+# control_treatment_breakdown = control_treatment_breakdown.loc[control_treatment_breakdown.psa_id.isin(["PSAWU6Z", "PSAV89B", "PSA2KQB"])]
+# control_treatment_breakdown_ = control_treatment_breakdown.loc[
+#     (control_treatment_breakdown.assistment_id.isin([
+#         1355695,189250, 189197,1277136, 1355456, 1355457,
+#         525061, 525087, 525088, 525091, 525050, 525090,
+#         807728, 807754, 807755, 807757, 807758, 807717
+#     ])) |
+#     (control_treatment_breakdown.problem_id.isin([
+#         1355695,189250, 189197,1277136, 1355456, 1355457,
+#         525061, 525087, 525088, 525091, 525050, 525090,
+#         807728, 807754, 807755, 807757, 807758, 807717
+#     ]))]
+
+

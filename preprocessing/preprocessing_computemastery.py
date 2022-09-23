@@ -16,19 +16,20 @@ def check_for_mastery_wheel_spinning(df_temp, psa_id):
                 if ('ignore' in control_treatment_info) or ('fail' in control_treatment_info) or \
                         ('pass' in control_treatment_info) or ('check' in control_treatment_info):
                     continue
-                continuous_score = df_temp.loc[df_temp.problem_log_id == problem_log_id].continuous_score.values
-                skb_problem_count += 1
-                if len(continuous_score) > 0:
-                    if continuous_score[0] == 1:
-                        skb_mastery_count += 1
+                elif 'posttest' not in control_treatment_info:
+                    continuous_score = df_temp.loc[df_temp.problem_log_id == problem_log_id].continuous_score.values
+                    skb_problem_count += 1
+                    if len(continuous_score) > 0:
+                        if continuous_score[0] == 1:
+                            skb_mastery_count += 1
+                        else:
+                            skb_mastery_count = 0
                     else:
                         skb_mastery_count = 0
-                else:
-                    skb_mastery_count = 0
 
             tags = df_temp.loc[
-                (df_temp.psa_id == psa_id) & (df_temp.user_id == user_id) & (df_temp.assignment_id == assignment_id)
-                ].control_treatments
+                (df_temp.psa_id == psa_id) & (df_temp.user_id == user_id) &
+                (df_temp.assignment_id == assignment_id)].control_treatments
             if (skb_mastery_count >= 3) or ('posttest' in tags):
                 df_temp.loc[(df_temp.psa_id == psa_id) & (df_temp.user_id == user_id) & (
                             df_temp.assignment_id == assignment_id), 'mastery'] = True
