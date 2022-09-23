@@ -14,8 +14,7 @@ def check_for_mastery_wheel_spinning(df_temp, psa_id):
                 control_treatment_info = df_temp.loc[df_temp.problem_log_id == problem_log_id].control_treatments.unique()[0]
                 # print(control_treatment_info)
                 if ('ignore' in control_treatment_info) or ('fail' in control_treatment_info) or \
-                        ('pass' in control_treatment_info) or ('posttest' in control_treatment_info) \
-                        or ('check' in control_treatment_info):
+                        ('pass' in control_treatment_info) or ('check' in control_treatment_info):
                     continue
                 continuous_score = df_temp.loc[df_temp.problem_log_id == problem_log_id].continuous_score.values
                 skb_problem_count += 1

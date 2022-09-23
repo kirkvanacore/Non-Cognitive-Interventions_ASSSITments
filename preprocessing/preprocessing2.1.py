@@ -11,34 +11,78 @@ import preprocessing_computemastery as computemastery
 def parse_PSA2KQB(df):
     user_ids = df.loc[df.psa_id == "PSA2KQB"].user_id.unique()
     for user_id in user_ids:
-        problem_ids = df.loc[((df.psa_id == "") & (df.user_id == user_id))].problem_id.unique()
-
-
-
+        problem_ids = df.loc[((df.psa_id == "PSA2KQB") & (df.user_id == user_id))].problem_id.unique()
+        df.loc[((df.psa_id == "PSA2KQB") & (
+                    df.psa_id == user_id)), 'control_treatments'] = "control"
+        if 1355695 in problem_ids:
+            score_mean = df.loc[((df.psa_id == "PSA2KQB") & (df.user_id == user_id) &
+                                 (df.problem_id.isin([189250, 189197])))].continuous_score.mean()
+            if score_mean >= 2:
+                df.loc[((df.psa_id == "PSA2KQB") & (df.psa_id == user_id)),
+                       'control_treatments'] = "treatment1:same_diff_in_correctness"
+            else:
+                df.loc[((df.psa_id == "PSA2KQB") & (df.psa_id == user_id)),
+                       'control_treatments'] = "treatment2:same_diff_in_correctness"
+        df.loc[((df.psa_id == "PSA2KQB") & (df.user_id == user_id) &
+                (df.problem_id.isin([1277136]))), "control_treatments"] = "ignore_guide_problems"
+        df.loc[((df.psa_id == "PSA2KQB") & (df.user_id == user_id) &
+                (df.problem_id.isin([1355456, 1355457]))), "control_treatments"] = "posttest"
+    computemastery.check_for_mastery_wheel_spinning(df, "PSA2KQB")
+    return df
 
 
 def parse_PSAV89B(df):
     user_ids = df.loc[df.psa_id == "PSAV89B"].user_id.unique()
     for user_id in user_ids:
-        problem_ids = df.loc[((df.psa_id == "") & (df.user_id == user_id))].problem_id.unique()
+        problem_ids = df.loc[((df.psa_id == "PSAV89B") & (df.user_id == user_id))].problem_id.unique()
+        treatment_competency = [525061, 525087, 525088]
+        treatment_plain_message = [525091, 525050, 525090]
+        assigned = False
+        df.loc[((df.psa_id == "PSAV89B") & (df.psa_id == user_id)), 'control_treatments'] = "control"
+        if any(x in treatment_competency for x in problem_ids):
+            df.loc[
+                ((df.psa_id == "PSAV89B") & (
+                            df.psa_id == user_id)), 'control_treatments'] = "treatment1:competency_check"
+            assigned = True
 
-
-
+        if any(x in treatment_plain_message for x in problem_ids) and assigned:
+            df.loc[
+                ((df.psa_id == "PSAV89B") & (df.psa_id == user_id)), 'control_treatments'] = "both_treatments"
+        else:
+            df.loc[
+                ((df.psa_id == "PSAV89B") & (df.psa_id == user_id)), 'control_treatments'] = "treatment2:plain_message"
+    computemastery.check_for_mastery_wheel_spinning(df, "PSAV89B")
+    return df
 
 
 def parse_PSAWU6Z(df):
     user_ids = df.loc[df.psa_id == "PSAWU6Z"].user_id.unique()
     for user_id in user_ids:
-        problem_ids = df.loc[((df.psa_id == "") & (df.user_id == user_id))].problem_id.unique()
+        problem_ids = df.loc[((df.psa_id == "PSAWU6Z") & (df.user_id == user_id))].problem_id.unique()
+        treatment_competency = [807728, 807754, 807755]
+        treatment_plain_message = [807757, 807758, 807717]
+        assigned = False
+        df.loc[((df.psa_id == "PSAWU6Z") & (df.psa_id == user_id)), 'control_treatments'] = "control"
+        if any(x in treatment_competency for x in problem_ids):
+            df.loc[
+                ((df.psa_id == "PSAWU6Z") & (
+                            df.psa_id == user_id)), 'control_treatments'] = "treatment1:competency_check"
+            assigned = True
+
+        if any(x in treatment_plain_message for x in problem_ids) and assigned:
+            df.loc[
+                ((df.psa_id == "PSAWU6Z") & (df.psa_id == user_id)), 'control_treatments'] = "both_treatments"
+        else:
+            df.loc[
+                ((df.psa_id == "PSAWU6Z") & (df.psa_id == user_id)), 'control_treatments'] = "treatment2:plain_message"
+    computemastery.check_for_mastery_wheel_spinning(df, "PSAWU6Z")
+    return df
 
 
-
-
-
-df_v1 = pd.read_csv("../Data/raw0.1/motivational_v1.csv")
+df_v1 = pd.read_csv("../Data/raw0.1/motivational_v1_new.csv")
 # df_v1 = df_v1[:2000]
 df_v1["control_treatments"] = "unassigned"
-df_v2 = pd.read_csv("../Data/raw0.1/motivational_v2.csv")
+df_v2 = pd.read_csv("../Data/raw0.1/motivational_v2_new.csv")
 # df_v2 = df_v2[:2000]
 df_v2["control_treatments"] = "unassigned"
 
@@ -54,31 +98,23 @@ df_v2['skb_problem_count'] = 0
 
 df_v1.rename({'correct': 'continuous_score'}, axis=1, inplace=True)
 df_v1.sort_values(by=['psa_id', 'user_id', 'assignment_id', 'problem_log_id'], inplace=True)
-df_v1 = parse_PSA2KNM(df_v1)
-print("DONE:: -> parse_PSA2KNM(df_v1)")
-df_v1 = parse_PSA2KNP(df_v1)
-print("DONE:: -> parse_PSA2KNP(df_v1)")
-df_v1 = parse_PSA9XWV(df_v1)
-print("DONE:: -> parse_PSA9XWV(df_v1)")
-df_v1 = parse_PSA59TQ(df_v1)
-print("DONE:: -> parse_PSA59TQ(df_v1)")
-df_v1 = parse_PSA7GUA(df_v1)
-print("DONE:: -> parse_PSA7GUA(df_v1)")
+df_v1 = parse_PSA2KQB(df_v1)
+print("DONE:: -> parse_PSA2KQB(df_v1)")
+df_v1 = parse_PSAV89B(df_v1)
+print("DONE:: -> parse_PSAV89B(df_v1)")
+df_v1 = parse_PSAWU6Z(df_v1)
+print("DONE:: -> parse_PSAWU6Z(df_v1)")
 df_v1 = df_v1.loc[~(df_v1.control_treatments == 'unassigned')]
 
 df_v2.rename({'user_xid': 'user_id'}, axis=1, inplace=True)
 df_v2.sort_values(by=['psa_id', 'user_id', 'assignment_id', 'problem_log_id'], inplace=True)
-df_v2 = parse_PSA2KNM(df_v2)
-print("DONE:: -> parse_PSA2KNM(df_v2)")
-df_v2 = parse_PSA2KNP(df_v2)
-print("DONE:: -> parse_PSA2KNP(df_v2)")
-df_v2 = parse_PSA9XWV(df_v2)
-print("DONE:: -> parse_PSA9XWV(df_v2)")
-df_v2 = parse_PSA59TQ(df_v2)
-print("DONE:: -> parse_PSA59TQ(df_v2)")
-df_v2 = parse_PSA7GUA(df_v2)
-print("DONE:: -> parse_PSA7GUA(df_v2)")
-df_v2 = df_v2.loc[~df_v2.control_treatments.isna()]
+df_v2 = parse_PSA2KQB(df_v2)
+print("DONE:: -> parse_PSA2KQB(df_v2)")
+df_v2 = parse_PSAV89B(df_v2)
+print("DONE:: -> parse_PSAV89B(df_v2)")
+df_v2 = parse_PSAWU6Z(df_v2)
+print("DONE:: -> parse_PSAWU6Z(df_v2)")
+df_v1 = df_v1.loc[~(df_v1.control_treatments == 'unassigned')]
 
 # 'name', 'student_class_id', 'teacher_id',
 # 'academic_year', 'pra_id', 'parent_ids', 'section_types',
@@ -116,6 +152,5 @@ df_v2_ = df_v2[['problem_log_id', 'assignment_id', 'problem_id', 'continuous_sco
                 'section_names', 'array_agg', 'control_treatments', 'mastery', 'skb_mastery_count',
                 'wheel_spinning', 'skb_problem_count']]
 
-
-df_v1_.to_csv("../Data/raw0.2/motivational_v1.csv", index=False)
-df_v2_.to_csv("../Data/raw0.2/motivational_v2.csv", index=False)
+df_v1_.to_csv("../Data/raw0.2/motivational_v1_new.csv", index=False)
+df_v2_.to_csv("../Data/raw0.2/motivational_v2_new.csv", index=False)
