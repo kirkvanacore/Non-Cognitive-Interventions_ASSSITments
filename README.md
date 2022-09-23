@@ -58,12 +58,13 @@ There are 8 problem sets to analyze. Some are skbs where as others are linear.
 > 
 >> PSA2KQB: <br/>
 >> Adding or Subtracting Integers 7.NS.A.1d EX<br/>
->> Has three conditions but treatment has an if condition embedded in it <br/>
+>> Has three conditions but treatment has an if condition embedded in it (189250, 189197) <br/>
 >>> Experiment: <br/>
 >>> Control: <br/>
->>> Treatment1: First two correct. assistment_id: ***944600***<br/>
->>> Treatment2: In the first two one or more incorrect. assistment_id: ***944600***<br/>
->> Posttest: 2 are real probelms.***assistment_id: 944393, 944394***<br/> 
+>>> Treatment1: First two correct. assistment_id: ***1355695***<br/>
+>>> Treatment2: In the first two one or more incorrect. assistment_id: ***1355695***<br/>
+>>> "ignore_guide_problems" ***1277136*** 
+>> Posttest: 2 are real probelms.***1355456, 1355457***<br/> 
 > 
 >> PSAV89B: <br/>
 >> Dividing Mixed Numbers 6.NS.A.1 EX <br/>
@@ -76,11 +77,17 @@ There are 8 problem sets to analyze. Some are skbs where as others are linear.
 >> PSAWU6Z: <br/>
 >> Multiplying Mixed Numbers 5.NF.B.4a EX<br/>
 >>> Experiment: <br/>
->>> Treatement(4 to mastery)/only 3 messages: Competency check. ***525061, 525087, 525088***<br/>
->>> Treatement(4 to mastery)/only 3 messages: Plain message. ***525091, 525050, 525090***<br/>
+>>> Treatement(4 to mastery)/only 3 messages: Competency check. ***807728, 807754, 807755***<br/>
+>>> Treatement(4 to mastery)/only 3 messages: Plain message. ***807757, 807758, 807717***<br/>
 >>> Control(3 to mastery): No message<br/>
 >> Problem to mastery<br/>
 >
+
+
+
+
+
+
 
 
 

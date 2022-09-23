@@ -9,20 +9,29 @@ import preprocessing_computemastery as computemastery
 
 
 def parse_PSA2KQB(df):
-    user_ids = df.loc[df.psa_id == "PSA2KNM"].user_id.unique()
+    user_ids = df.loc[df.psa_id == "PSA2KQB"].user_id.unique()
     for user_id in user_ids:
+        problem_ids = df.loc[((df.psa_id == "") & (df.user_id == user_id))].problem_id.unique()
+
+
 
 
 
 def parse_PSAV89B(df):
-    user_ids = df.loc[df.psa_id == "PSA2KNM"].user_id.unique()
+    user_ids = df.loc[df.psa_id == "PSAV89B"].user_id.unique()
     for user_id in user_ids:
+        problem_ids = df.loc[((df.psa_id == "") & (df.user_id == user_id))].problem_id.unique()
+
+
 
 
 
 def parse_PSAWU6Z(df):
-    user_ids = df.loc[df.psa_id == "PSA2KNM"].user_id.unique()
+    user_ids = df.loc[df.psa_id == "PSAWU6Z"].user_id.unique()
     for user_id in user_ids:
+        problem_ids = df.loc[((df.psa_id == "") & (df.user_id == user_id))].problem_id.unique()
+
+
 
 
 
