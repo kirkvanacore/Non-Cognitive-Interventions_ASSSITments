@@ -14,6 +14,7 @@ def parse_PSA2KQB(df):
         problem_ids = df.loc[((df.psa_id == "PSA2KQB") & (df.user_id == user_id))].problem_id.unique()
         df.loc[((df.psa_id == "PSA2KQB") & (
                 df.user_id == user_id)), "control_treatments"] = "control"
+        reference_idx = "_1"
         if 1355695 in problem_ids:
             score_sum = df.loc[((df.psa_id == "PSA2KQB") & (df.user_id == user_id) &
                                 (df.problem_id.isin([189250, 189197])))].continuous_score.sum()
@@ -23,8 +24,9 @@ def parse_PSA2KQB(df):
             else:
                 df.loc[((df.psa_id == "PSA2KQB") & (df.user_id == user_id)),
                        "control_treatments"] = "treatment2:same_diff_in_correctness"
+                reference_idx = "_2"
         df.loc[((df.psa_id == "PSA2KQB") & (df.user_id == user_id) &
-                (df.problem_id.isin([1277136]))), "control_treatments"] = "ignore_guide_problems"
+                (df.problem_id.isin([1277136]))), "control_treatments"] = "ignore_guide_problems" + reference_idx
         df.loc[((df.psa_id == "PSA2KQB") & (df.user_id == user_id) &
                 (df.problem_id.isin([1355456, 1355457]))), "control_treatments"] = "posttest"
     df = computemastery.check_for_mastery_wheel_spinning(df, "PSA2KQB")
