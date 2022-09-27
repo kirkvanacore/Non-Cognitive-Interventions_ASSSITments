@@ -13,8 +13,10 @@ def check_for_mastery_wheel_spinning(df_temp, psa_id):
             for problem_log_id in problem_log_ids:
                 control_treatment_info = df_temp.loc[df_temp.problem_log_id == problem_log_id].control_treatments.unique()[0]
                 # print(control_treatment_info)
+                # warning: keep in mind the competency check was modified as some point and the mastery was upgraded
+                #  from 3.0 to 4.0 for treatment conditoin but that was done very late unfortunately we cannot tell when
                 if ('ignore' in control_treatment_info) or ('fail' in control_treatment_info) or \
-                        ('pass' in control_treatment_info) or ('check' in control_treatment_info):
+                        ('pass' in control_treatment_info) or ('_check_' in control_treatment_info):
                     continue
                 elif 'posttest' not in control_treatment_info:
                     continuous_score = df_temp.loc[df_temp.problem_log_id == problem_log_id].continuous_score.values

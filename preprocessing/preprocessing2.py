@@ -37,7 +37,7 @@ def parse_PSA2KNM(df):
             else:
                 df.loc[((df.psa_id == "PSA2KNM") & (df.user_id == user_id)), "control_treatments"] = "video_check_fail"
 
-    computemastery.check_for_mastery_wheel_spinning(df, "PSA2KNM")
+    df = computemastery.check_for_mastery_wheel_spinning(df, "PSA2KNM")
     return df
 
 
@@ -70,7 +70,7 @@ def parse_PSA2KNP(df):
             else:
                 df.loc[((df.psa_id == "PSA2KNP") & (df.user_id == user_id)), "control_treatments"] = "video_check_fail"
 
-    computemastery.check_for_mastery_wheel_spinning(df, "PSA2KNP")
+    df = computemastery.check_for_mastery_wheel_spinning(df, "PSA2KNP")
     return df
 
 
@@ -98,7 +98,7 @@ def parse_PSA9XWV(df):
         df.loc[((df.psa_id == "PSA9XWV") & (df.user_id == user_id) &
                 (df.problem_id.isin([1523968, 1523974, 1523981]))), "control_treatments"] = "posttest"
 
-    computemastery.check_for_mastery_wheel_spinning(df, "PSA9XWV")
+    df = computemastery.check_for_mastery_wheel_spinning(df, "PSA9XWV")
     return df
 
 
@@ -121,7 +121,7 @@ def parse_PSA59TQ(df):
         df.loc[((df.psa_id == "PSA59TQ") & (df.user_id == user_id) &
                 (df.problem_id.isin([1059308, 1198778, 386818]))), "control_treatments"] = "posttest"
 
-    computemastery.check_for_mastery_wheel_spinning(df, "PSA59TQ")
+    df = computemastery.check_for_mastery_wheel_spinning(df, "PSA59TQ")
     return df
 
 
@@ -144,7 +144,7 @@ def parse_PSA7GUA(df):
         df.loc[((df.psa_id == "PSA7GUA") & (df.user_id == user_id) &
                 (df.problem_id.isin([1215094, 1215093]))), "control_treatments"] = "posttest"
 
-    computemastery.check_for_mastery_wheel_spinning(df, "PSA7GUA")
+    df = computemastery.check_for_mastery_wheel_spinning(df, "PSA7GUA")
     return df
 
 

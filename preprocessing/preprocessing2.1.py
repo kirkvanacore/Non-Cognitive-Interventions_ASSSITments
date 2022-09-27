@@ -13,10 +13,10 @@ def parse_PSA2KQB(df):
     for user_id in user_ids:
         problem_ids = df.loc[((df.psa_id == "PSA2KQB") & (df.user_id == user_id))].problem_id.unique()
         df.loc[((df.psa_id == "PSA2KQB") & (
-                    df.user_id == user_id)), "control_treatments"] = "control"
+                df.user_id == user_id)), "control_treatments"] = "control"
         if 1355695 in problem_ids:
             score_sum = df.loc[((df.psa_id == "PSA2KQB") & (df.user_id == user_id) &
-                                 (df.problem_id.isin([189250, 189197])))].continuous_score.sum()
+                                (df.problem_id.isin([189250, 189197])))].continuous_score.sum()
             if score_sum >= 2:
                 df.loc[((df.psa_id == "PSA2KQB") & (df.user_id == user_id)),
                        "control_treatments"] = "treatment1:same_diff_in_correctness"
@@ -27,11 +27,11 @@ def parse_PSA2KQB(df):
                 (df.problem_id.isin([1277136]))), "control_treatments"] = "ignore_guide_problems"
         df.loc[((df.psa_id == "PSA2KQB") & (df.user_id == user_id) &
                 (df.problem_id.isin([1355456, 1355457]))), "control_treatments"] = "posttest"
-    computemastery.check_for_mastery_wheel_spinning(df, "PSA2KQB")
+    df = computemastery.check_for_mastery_wheel_spinning(df, "PSA2KQB")
     return df
 
 
-def parse_PSAV89B(df):
+def parse_PSAV89B_(df):
     user_ids = df.loc[df.psa_id == "PSAV89B"].user_id.unique()
     for user_id in user_ids:
         problem_ids = df.loc[((df.psa_id == "PSAV89B") & (df.user_id == user_id))].problem_id.unique()
@@ -51,11 +51,11 @@ def parse_PSAV89B(df):
         elif any(x in treatment_plain_message for x in problem_ids) and not assigned:
             df.loc[
                 ((df.psa_id == "PSAV89B") & (df.user_id == user_id)), "control_treatments"] = "treatment2:plain_message"
-    computemastery.check_for_mastery_wheel_spinning(df, "PSAV89B")
+    df = computemastery.check_for_mastery_wheel_spinning(df, "PSAV89B")
     return df
 
 
-def parse_PSAWU6Z(df):
+def parse_PSAWU6Z_(df):
     user_ids = df.loc[df.psa_id == "PSAWU6Z"].user_id.unique()
     for user_id in user_ids:
         problem_ids = df.loc[((df.psa_id == "PSAWU6Z") & (df.user_id == user_id))].problem_id.unique()
@@ -66,7 +66,7 @@ def parse_PSAWU6Z(df):
         if any(x in treatment_competency for x in problem_ids):
             df.loc[
                 ((df.psa_id == "PSAWU6Z") & (
-                            df.user_id == user_id)), "control_treatments"] = "treatment1:competency_check"
+                        df.user_id == user_id)), "control_treatments"] = "treatment1:competency_check"
             assigned = True
 
         if any(x in treatment_plain_message for x in problem_ids) and assigned:
@@ -75,15 +75,56 @@ def parse_PSAWU6Z(df):
         elif any(x in treatment_plain_message for x in problem_ids) and not assigned:
             df.loc[
                 ((df.psa_id == "PSAWU6Z") & (df.user_id == user_id)), "control_treatments"] = "treatment2:plain_message"
-    computemastery.check_for_mastery_wheel_spinning(df, "PSAWU6Z")
+    df = computemastery.check_for_mastery_wheel_spinning(df, "PSAWU6Z")
+    return df
+
+
+def parse_PSAV89B(df):
+    treatment_competency = [807728, 807754, 807755]
+    treatment_plain_message = [807757, 807758, 807717]
+    df["user_psa_combo"] = df.user_id.astype(str) + df.psa_id.astype(str)
+    df_temp = df.loc[df.psa_id == "PSAV89B"]
+
+    user_psa_combo_t1 = df_temp.loc[df_temp.problem_id.isin(treatment_competency)].user_psa_combo.unique()
+    user_psa_combo_t2 = df_temp.loc[df_temp.problem_id.isin(treatment_plain_message)].user_psa_combo.unique()
+    # user_psa_combo_control = df_temp.loc[~(df_temp.problem_id.isin(treatment_competency) |
+    #                                        df_temp.problem_id.isin(treatment_plain_message))].user_psa_combo.unique()
+
+    df.loc[df.psa_id == "PSAV89B", "control_treatments"] = "control"
+    df.loc[df.user_psa_combo.isin(user_psa_combo_t1), "control_treatments"] = "treatment1:competency_check"
+    df.loc[df.user_psa_combo.isin(user_psa_combo_t2), "control_treatments"] = "treatment2:plain_message"
+    df.loc[(df.user_psa_combo.isin(user_psa_combo_t1) &
+            df.user_psa_combo.isin(user_psa_combo_t2)), "control_treatments"] = "both_treatments"
+    df = computemastery.check_for_mastery_wheel_spinning(df, "PSAV89B")
+    return df
+
+
+def parse_PSAWU6Z(df):
+    treatment_competency = [807728, 807754, 807755]
+    treatment_plain_message = [807757, 807758, 807717]
+    df["user_psa_combo"] = df.user_id.astype(str) + df.psa_id.astype(str)
+    df_temp = df.loc[df.psa_id == "PSAWU6Z"]
+
+    user_psa_combo_t1 = df_temp.loc[df_temp.problem_id.isin(treatment_competency)].user_psa_combo.unique()
+    user_psa_combo_t2 = df_temp.loc[df_temp.problem_id.isin(treatment_plain_message)].user_psa_combo.unique()
+    # user_psa_combo_control = df_temp.loc[~(df_temp.problem_id.isin(treatment_competency) |
+    #                                        df_temp.problem_id.isin(treatment_plain_message))].user_psa_combo.unique()
+
+    df.loc[df.psa_id == "PSAWU6Z", "control_treatments"] = "control"
+    df.loc[df.user_psa_combo.isin(user_psa_combo_t1), "control_treatments"] = "treatment1:competency_check"
+    df.loc[df.user_psa_combo.isin(user_psa_combo_t2), "control_treatments"] = "treatment2:plain_message"
+    df.loc[(df.user_psa_combo.isin(user_psa_combo_t1) &
+            df.user_psa_combo.isin(user_psa_combo_t2)), "control_treatments"] = "both_treatments"
+
+    df = computemastery.check_for_mastery_wheel_spinning(df, "PSAWU6Z")
     return df
 
 
 df_v1 = pd.read_csv("../Data/raw0.1/motivational_v1_new.csv")
-# df_v1 = df_v1[:8000]
+# df_v1 = df_v1[:10000]
 df_v1["control_treatments"] = "unassigned"
 df_v2 = pd.read_csv("../Data/raw0.1/motivational_v2_new.csv")
-# df_v2 = df_v2[:8000]
+# df_v2 = df_v2[:10000]
 df_v2["control_treatments"] = "unassigned"
 
 df_v1['mastery'] = False
@@ -157,3 +198,14 @@ df_v2_.to_csv("../Data/raw0.2/motivational_v2_new.csv", index=False)
 
 print(df_v1_.groupby(['psa_id', 'control_treatments']).size().reset_index(name='frequency'))
 print(df_v2_.groupby(['psa_id', 'control_treatments']).size().reset_index(name='frequency'))
+
+abc = df_v2.loc[
+    df_v2.psa_id.isin(["PSAV89B", "PSAWU6Z"])
+].groupby(['psa_id', 'user_psa_combo', 'problem_log_id', 'control_treatments', 'section_names',  'pra_id', 'continuous_score',
+           'answer_text', 'skb_mastery_count', 'skb_problem_count', 'mastery']).size().reset_index(name='frequency')
+
+abc.sort_values(by=['psa_id', 'user_psa_combo', 'problem_log_id'], inplace=True)
+
+
+
+
