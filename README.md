@@ -1,8 +1,8 @@
-Repostory for _Impact of Non-Cognitive Interventions on Student Learning Behaviors and Outcomes: An analysis of seven large-scale experimental inventions_
+# Repostory for _Impact of Non-Cognitive Interventions on Student Learning Behaviors and Outcomes: An analysis of seven large-scale experimental inventions_
 
 ACM Reference Format: Kirk P. Vanacore, Ashish Gurung, Andrew A. McReynolds, Allison Liu, Stacy T. Shaw, and Neil T. Heffernan. 2023. Impact of Non-Cognitive Interventions on Student Learning Behaviors and Outcomes: An analysis of seven large-scale experimental inventions. In LAK23: 13th International Learning Analytics and Knowledge Conference (LAK 2023), March 13–17, 2023, Arlington, TX, USA. ACM, New York, NY, USA, 10 pages. https://doi.org/10.1145/3576050.3576073 
 
-ABSTRACT
+## ABSTRACT
 As evidence grows supporting the importance of non-cognitive factors in learning, computer-assisted learning platforms increasingly incorporate non-academic interventions to influence student learning and learning related-behaviors. Non-cognitive interventions often attempt to influence students’ mindset, motivation, or metacognitive reflection to impact learning behaviors and outcomes. In the current paper, we analyze data from five experiments, involving seven treatment conditions embedded in mastery-based learning activities hosted on a computer-assisted learning platform focused on middle school mathematics. Each treatment condition embodied a specific non-cognitive theoretical perspective. Over seven school years, 20,472 students participated in the experiments. We estimated the effects of each treatment condition on students’ response time, hint usage, likelihood of mastering knowledge components, learning efficiency, and post-tests performance. Our analyses reveal a mix of both positive and negative treatment effects on student learning behaviors and performance. Few interventions impacted learning as assessed by the post-tests. These findings highlight the difficulty in positively influencing student learning behaviors and outcomes using non-cognitive interventions.
 
 
