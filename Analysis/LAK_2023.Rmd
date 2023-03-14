@@ -1,0 +1,1084 @@
+---
+title: "Impact of Non-Cognitive Interventions on Student Learning Behaviors and Outcomes: An analysis of seven large-scale experimental inventions"
+output: html_document
+
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Paper Details:
+* Acm Conference LAK23: 13th International Learning Analytics and Knowledge Conference (LAK 2023), March 13--17, 2023, Arlington, TX, USA
+* DOI: 10.1145/3576050.3576073
+* ACM ISBN: 978-1-4503-9865-7/23/03
+* https://dl.acm.org/doi/abs/10.1145/3576050.3576073 
+
+
+**Authors**
+
+* Vanacore,Kirk 
+* Gurung, Ashsish
+* McReynolds, Andrew A.
+* Lui, Alison
+* Shaw, Stacy T. 
+* Heffernan, Neil T.
+
+
+## Abstract
+As evidence grows supporting the importance of non-cognitive factors in learning, computer-assisted learning platforms increasingly incorporate non-academic interventions to influence student learning and learning related-behaviors. Non-cognitive interventions often attempt to influence students’ mindset, motivation, or metacognitive reflection to impact learning behaviors and outcomes. In the current paper, we analyze data from five experiments, involving seven treatment conditions embedded in mastery-based learning activities hosted on a computer-assisted learning platform focused on middle school mathematics. Each treatment condition embodied a specific non-cognitive theoretical perspective. Over seven school years, 20,472 students participated in the experiments. We estimated the effects of each treatment condition on students’ response time, hint usage, likelihood of mastering knowledge components, learning efficiency, and post-tests performance. Our analyses reveal a mix of both positive and negative treatment effects on student learning behaviors and performance. Few interventions impacted learning as assessed by the post-tests. These findings highlight the difficulty in positively influencing student learning behaviors and outcomes using non-cognitive interventions.
+
+
+### Research Questions
+
+As we are interested in understanding whether non-cognitive interventions affect learning-related behaviors as well as learning measures as outcomes, our research questions focus on a variety of different variables as outcomes:
+
+#### RQ1: Did each intervention increase students' initial response time when solving a problem?
+As response time (defined as the time between viewing the problem and either submitting a response or requesting a hint) is positively correlated with performance \cite{chan2022, Gurung2021, kramarski2006}, we analyzed whether each intervention impacted the amount of time between viewing the problem and taking an action (response time) as a learning-related outcome. This allows us to evaluate whether the interventions cause students to slow down and consider the problem prior to acting, an action that is related to learning and performance \cite{lawson2019}. 
+
+#### RQ2: Did each intervention increase the likelihood of students engaging in hint usage during the activity?}
+Providing access to hints has a positive effect on student performance \cite{prihar2021, patikorn2020}, so the likelihood that students utilized hints as a help-seeking behavior was included as an outcome. This allows us to measure the extent to which the interventions cause students to seek assistance as they worked through the activity.
+
+#### RQ3: Did each intervention increase the likelihood that students completed the activity by mastering the knowledge component?
+The goal of each activity in ASSISTments is to master the knowledge components, so we evaluate each intervention's impact on the likelihood that the students reach this goal. Notably, mastery can be viewed as a product of student knowledge entering the activity, learning during the activity, and their willingness to persist through the activity. 
+
+#### RQ4: Did each intervention impact student learning as measured by their efficiency in mastering the knowledge component of the activity and performance on a post-test?
+Students required different numbers of problems before reaching mastery and may have experienced different levels of learning during the activity. Therefore, we examined whether the interventions impacted the efficiency in which students learned by examining the difference in the number of problems to mastery, and we evaluated how much learning they experienced during the activity by assessing differences in their performance on a post-test. 
+
+```{r packages}
+
+# prepare libraries
+packages = c(
+  "tidyverse",
+  "plyr",
+  "ggExtra",
+  "xts",
+  "lubridate",
+  "readxl",
+  "ggpubr",
+  "data.table",
+  "RSQLite",
+  "DBI",
+  "mice"
+  ,"psych",
+  "stringr",
+  "sjmisc",
+  "lme4",
+  "campfin",
+  "pROC",
+  "cutpointr",
+  "missForest",
+  "corrplot",
+  "tidyverse",
+  "arm",
+  "lubridate",
+  "xtable",
+  "psych"
+)
+#load install
+package.check <- lapply(
+  packages,
+  FUN = function(x) {
+    if (!require(x, character.only = TRUE)) {
+      install.packages(x, dependencies = TRUE)
+      library(x, character.only = TRUE)
+    }
+  } 
+) 
+rm(package.check, packages)
+options(max.print=1000000)
+options(scipen = 100)
+gc()
+
+```
+
+``` {r data}
+
+v1 <- read_csv("/Users/kirkvanacore/Documents/WPI_Analyses/Non-Cognitive-Interventions_ASSSITments/02_data/motivational_v1.csv") %>%
+  mutate(
+    v = 1,
+    user_id = paste0("v1", user_id),
+    assignment_id  = paste0("v1", assignment_id),
+    problem_log_id  = paste0("v1", problem_log_id),
+    teacher_id  = paste0("v1", teacher_id),
+    student_class_id  = paste0("v1", student_class_id)
+  )
+v1_new <- read_csv("/Users/kirkvanacore/Documents/WPI_Analyses/Non-Cognitive-Interventions_ASSSITments/02_data/motivational_v1_new.csv") %>%
+  mutate(
+    v = 1,
+    user_id = paste0("v1", user_id),
+    assignment_id  = paste0("v1", assignment_id),
+    problem_log_id  = paste0("v1", problem_log_id),
+    teacher_id  = paste0("v1", teacher_id),
+    student_class_id  = paste0("v1", student_class_id)
+  )
+v2 <- read_csv("/Users/kirkvanacore/Documents/WPI_Analyses/Non-Cognitive-Interventions_ASSSITments/02_data/motivational_v2.csv")%>%
+  mutate(
+    v = 2,
+    user_id = paste0("v2", user_id),
+    assignment_id  = paste0("v2", assignment_id),
+    problem_log_id  = paste0("v2", problem_log_id),
+    teacher_id  = paste0("v2", teacher_id),
+    student_class_id  = paste0("v2", student_class_id)
+  )
+v2_new <- read_csv("/Users/kirkvanacore/Documents/WPI_Analyses/Non-Cognitive-Interventions_ASSSITments/02_data/motivational_v2_new.csv")%>%
+  mutate(
+    v = 2,
+    user_id = paste0("v2", user_id),
+    assignment_id  = paste0("v2", assignment_id),
+    problem_log_id  = paste0("v2", problem_log_id),
+    teacher_id  = paste0("v2", teacher_id),
+    student_class_id  = paste0("v2", student_class_id)
+  )
+
+merge <- rbind(v1, v1_new, v2, v2_new)
+rm(v1, v1_new, v2, v2_new)
+#str(dat)
+```
+
+## Data 
+``` {r clean, message=FALSE}
+
+
+
+
+
+experiments <- data.frame(
+  psa_id = c(
+    "PSA2KNM",
+    "PSA2KNP",
+    "PSA59TQ",
+    "PSA7GUA",
+    "PSA9XWV",
+    "PSA2KQB",
+    "PSAV89B",
+    "PSAWU6Z"
+  ),
+  experiment = c(
+    "Embracing Mistakes",
+    "Embracing Mistakes",
+    "Inspirational Quotes",
+    "Inspirational Quotes",
+    "Social Comparison",
+    "Emotion Labeling",
+    "Confidence Judgments",
+    "Confidence Judgments"
+  ),
+  num_posttest_problems = c(2, 2, 3, 2, 3, 2, 0, 0)
+  
+)
+
+
+dat <- merge %>%
+  left_join(
+    experiments,
+    by = "psa_id"
+  ) %>%
+  dplyr::ungroup() %>%
+    dplyr::filter(
+      
+    !control_treatments  %in% c("ignore_posttest", 
+                                "ignore_guide_problems",
+                                "unassigned", # never randomized
+                                "competency_check_problem"
+                             #,   "treatment2:plain_message" # dropping active control for confideince experiment
+                                ),
+    !(control_treatments  %in% c("control") &  psa_id %in% c("PSAV89B", "PSAWU6Z")) # droping BAU control for confedince judgment experments
+    ) %>%
+  dplyr::mutate(
+    
+    control_treatments2 = ifelse(control_treatments == "treatment2:plain_message", 
+                                "control", control_treatments),
+    
+        posttest = ifelse(control_treatments == "posttest", 1, 0),
+        sb_problem = ifelse(!grepl("ignore", section_names) & posttest != 1, 1, 0),
+        correct = ifelse(continuous_score == 1, 1, 0),
+                control = ifelse(startsWith(control_treatments, "control") == T | endsWith(control_treatments, "plain_message"), 1, 0),
+        treatment = ifelse(startsWith(control_treatments, "treatment") & !endsWith(control_treatments, "plain_message") == T, 1, 0),
+        video_fail = ifelse(control_treatments == "video_check_fail", 1, 0)
+
+  ) %>%
+  dplyr::group_by(user_id, psa_id, assignment_id) %>%
+  mutate(
+    treatment = ifelse(sum(treatment) > 0, 1, 0),
+    control = ifelse(sum(control) > 0, 1, 0),
+    video_fail = ifelse(sum(video_fail) > 0, 1, 0),
+    never_randomized = ifelse(treatment == 0 & control == 0, 1, 0),
+    posttest_responses = sum(posttest)
+  ) %>%
+  filter(
+    # these are students who were never randomized
+    video_fail == 0,
+    (never_randomized == 0)
+
+  ) %>%
+  ### drop second + exposures to the same experiment 
+  ungroup() %>%
+   group_by(user_id, psa_id) %>%
+    arrange(assignment_id ) %>%
+  dplyr::mutate(running_exp_count = match(assignment_id, unique(assignment_id))) %>%
+  filter(
+    # keep only first exposure to the experiment
+    running_exp_count == 1 ,
+    posttest_responses <= num_posttest_problems
+  ) %>%
+  group_by(user_id, psa_id) %>%
+  ### label conditions 
+  mutate(
+    conditon = ifelse(control == 1, "control",
+                          ifelse(sum(ifelse(endsWith(control_treatments, "text"), 1,0)) >0, "Embracing Mistakes (Image)",
+                                 ifelse(sum(ifelse(endsWith(control_treatments, "video"), 1,0)) >0, "Embracing Mistakes (Video)",  
+                                        ifelse(sum(ifelse(endsWith(control_treatments, "encouragement"), 1,0)) >0, "Inspirational Quotes",
+                                               ifelse(sum(ifelse(endsWith(control_treatments, "10_to_mastery"), 1,0)) >0, "Social Comparison (Performance)",
+                                                      ifelse(sum(ifelse(endsWith(control_treatments, "high_hint_usage"), 1,0)) >0, "Social Comparison (Help Seeking)",
+                                                             ifelse(sum(ifelse(endsWith(control_treatments, "competency_check"), 1,0)) >0, "Confidence Judgments",
+                                                                    ifelse(sum(ifelse(endsWith(control_treatments, "same_diff_in_correctness"), 1,0)) >0,
+                                                                           "Emotion Labeling",
+                                                                           NA)))))))),
+    treatment1 = ifelse(treatment == 1 & conditon != "Embracing Mistakes (Image)" &  conditon != "Social Comparison (Help Seeking)", 
+                        1, 0),
+    treatment2 = ifelse(conditon == "Embracing Mistakes (Image)" | conditon == "Social Comparison (Help Seeking)",
+                        1, 0))
+  
+
+
+```
+
+
+#### Dates
+```{r, , message=FALSE}
+paste("Years:")
+table(year(lubridate::as_date(dat$problem_log_end_time)))
+( paste("Min Date:", min(dat$problem_log_end_time)))
+( paste("Max Date:", max(dat$problem_log_end_time)))
+```
+
+
+### Sample
+``` {r sample, message=FALSE,  }
+stud_ex <- dat %>%
+  ungroup() %>%
+  dplyr::group_by(user_id, psa_id, assignment_id) %>%
+  dplyr::mutate(
+    num_expose = length(unique(paste(
+      user_id, psa_id, assignment_id
+    ))),
+    num_hints = sum(hint_count),
+    avg_first_response_time = mean(ifelse(sb_problem == 1, first_response_time, NA), na.rm = T),
+    avg_sb_accuracy = mean(ifelse(sb_problem == 1, correct, NA), na.rm = T),
+    avg_pt_accuracy = mean(ifelse(posttest == 1, correct, NA), na.rm = T),
+    
+  ) %>%
+  dplyr::select(
+    user_id,
+    assignment_id,
+    psa_id,
+    student_class_id,
+    teacher_id,
+    academic_year,
+    psa_id,
+    experiment,
+    conditon,
+    treatment,
+    treatment1,
+    treatment2,
+    num_hints,
+    avg_first_response_time,
+    skb_problem_count,
+    avg_sb_accuracy,
+    avg_pt_accuracy,
+    num_expose,
+    mastery,
+    num_posttest_problems,
+    posttest_responses
+  ) %>%
+  mutate(attrit = ifelse(posttest_responses == 0 , 1, 0)) %>%
+  distinct() 
+
+
+
+stud <- stud_ex %>% 
+  ungroup() %>% 
+  group_by(user_id) %>%
+  dplyr::mutate(num_exper = length(unique(psa_id))) %>%
+  dplyr::select(user_id, (num_exper))  %>%
+  distinct()
+
+
+paste("Number of Experminal Acitivities:", length(stud_ex$user_id))
+paste("Number of Students:", length(stud$user_id))
+paste("Number of Students with more than one experiment:")
+table(stud$num_exper > 1)
+
+
+
+
+# xtable::xtable(table(stud_ex$treatment), type = "latex")
+# 
+# table(stud_ex$num_expose) 
+# 
+# table(stud$num_exper)
+# 
+# table( stud_ex$mastery, stud_ex$posttest_responses )
+# 
+stud_ex$treatment_both = ifelse(stud_ex$treatment1 == 1, "Treatment 1",
+                                 ifelse(stud_ex$treatment2 == 1, "Treatment 2",
+                                        "Control"
+                                 ))
+
+sample <- as.data.frame.matrix(
+  rbind(
+        addmargins(table(stud_ex$experiment, stud_ex$treatment_both)))) %>%
+    dplyr::mutate(
+      n = round(Sum,0),
+      Control = paste0(Control, "  (", round(Control / n, 4) * 100, "%)"),
+      `Treatment 1` = paste0(`Treatment 1`, "  (", round(`Treatment 1` / n, 4) * 100, "%)"),
+      `Treatment 2` = ifelse(`Treatment 2` == 0, '--',
+        paste0(`Treatment 2`, "  (", round(`Treatment 2` / n, 4) * 100, "%)"))
+
+    ) %>%
+    dplyr::select(n, `Treatment 1`, `Treatment 2`, Control) %>%
+    arrange(desc(n)
+    ) 
+
+rownames(sample) <- c("Total Sample",
+                      "Emotion Labeling",
+                      "Confidence Judgments",
+                      "Inspirational Quotes",
+                      "Embracing Mistakes",
+                      "Social Comparison")
+
+# xtable(sample, type = "LaTex", digits = 0, align = "lcccc")
+
+sample %>%  
+  kableExtra::kable(      align = "lcccc") %>%
+  kableExtra::kable_styling(position = "center")
+
+```
+### Descriptive statsics
+```{r}
+des1 <- stud_ex %>%
+  ungroup() %>%
+  dplyr::select(treatment,
+                num_hints,
+                avg_first_response_time,
+                skb_problem_count,
+                mastery,
+                avg_sb_accuracy,
+                avg_pt_accuracy) %>%
+  dplyr::summarise(
+    avg_first_response_time = paste0(round(mean(
+      avg_first_response_time / 100000, na.rm = T
+    ), 2), " (", round(sd(
+      avg_first_response_time / 100000, na.rm = T
+    ), 2), ")"),
+    num_hints = paste0(round(mean(num_hints), 2), " (", round(sd(num_hints), 2), ")"),
+    skb_problem_count = paste0(round(mean(skb_problem_count), 2), " (", round(sd(skb_problem_count), 2), ")"),
+    avg_sb_accuracy = paste0(round(mean(avg_sb_accuracy * 100, na.rm = T), 2), "% (", round(sd(avg_sb_accuracy *
+                                                                             100, na.rm = T), 2), "%)"),
+    pre_mastery = paste0(round(mean(mastery)*100, 2), "% (", round(sd(mastery *100, na.rm = T), 2), "%)"),
+    avg_pt_accuracy = paste0(round(mean(avg_pt_accuracy * 100, na.rm = T), 2), "% (", round(sd(avg_pt_accuracy *
+                                                                             100, na.rm = T), 2), "%)")
+  ) %>%
+  t() 
+
+des2 <- stud_ex %>%
+  ungroup() %>%
+  dplyr::select(treatment,
+                num_hints,
+                avg_first_response_time,
+                skb_problem_count,
+                avg_sb_accuracy,
+                mastery,
+                avg_pt_accuracy) %>%
+   dplyr::group_by(treatment) %>%
+  dplyr::summarise(
+    avg_first_response_time = paste0(round(mean(
+      avg_first_response_time / 100000, na.rm = T
+    ), 2), " (", round(sd(
+      avg_first_response_time / 100000, na.rm = T
+    ), 2), ")"),
+    num_hints = paste0(round(mean(num_hints), 2), " (", round(sd(num_hints), 2), ")"),
+    skb_problem_count = paste0(round(mean(skb_problem_count), 2), " (", round(sd(skb_problem_count), 2), ")"),
+    avg_sb_accuracy = paste0(round(mean(avg_sb_accuracy * 100, na.rm = T), 2), "% (", round(sd(avg_sb_accuracy *
+                                                                             100, na.rm = T), 2), "%)"),
+    pre_mastery = paste0(round(mean(mastery)*100, 2), "% (", round(sd(mastery *100, na.rm = T), 2), "%)"),
+    avg_pt_accuracy = paste0(round(mean(avg_pt_accuracy * 100, na.rm = T), 2), "% (", round(sd(avg_pt_accuracy *
+                                                                             100, na.rm = T), 2), "%)")
+  ) %>% 
+  mutate(treatment = ifelse(treatment == 1, "Treatment", "Control")) %>%
+  t() 
+
+
+colnames(des2) <- des2[1,]
+#des2[-c(1) ,]
+
+colnames(des1) <- c("All")
+
+descriptives<-as.data.frame.matrix( cbind(des1, des2[-c(1) ,]) )%>%
+  dplyr::select(All, `Treatment`, Control)
+
+#xtable(descriptives)
+ descriptives %>%  
+  kableExtra::kable(      align = "lcccc") %>%
+  kableExtra::kable_styling(position = "center")
+```
+
+
+# RQ1 Response Time
+**Did the conditions increase the time between viewing the problem and submitting a response?**
+```{r, warning=TRUE}
+# descriptives
+kableExtra::kable(psych::describe(stud_ex$avg_first_response_time))%>%
+  kableExtra::kable_styling(position = "center")
+
+
+
+RQ1_fun <- function(dat){
+  summary(lm(
+    log(avg_first_response_time+1) ~ 
+      treatment,
+    data = dat
+  ))
+  }
+  
+
+RQ1_time_model <- by(stud_ex %>%
+                       ungroup(
+                         
+                       )%>%
+                   dplyr::select(
+                     avg_first_response_time,
+                     treatment
+                   ) ,
+                  as.factor(stud_ex$experiment),
+                 RQ1_fun)
+
+
+  
+```
+### Follow up by treatements
+``` {r, warnings = TRUE}
+
+RQ1_Reappraisal_t1<-summary(lm(
+    log(avg_first_response_time+1) ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Embracing Mistakes' & stud_ex$treatment2 !=1, ]
+  ))
+#RQ1_Reappraisal_t1
+
+RQ1_Reappraisal_t2<-summary(lm(
+    log(avg_first_response_time+1) ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Embracing Mistakes' & stud_ex$treatment1 !=1, ]
+  ))
+#RQ1_Reappraisal_t2
+
+
+RQ1_Comparison_t1<-summary(lm(
+    log(avg_first_response_time+1) ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Social Comparison' & stud_ex$treatment2 !=1, ]
+  ))
+#RQ1_Comparison_t1
+
+RQ1_Comparison_t2<-summary(lm(
+    log(avg_first_response_time+1) ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Social Comparison' & stud_ex$treatment1 !=1, ]
+  ))
+#RQ1_Comparison_t2
+
+
+```
+
+### Extract Coeffecients
+```{r}
+
+RQ1_intercepts<- as.data.frame(t(as.data.frame(lapply(RQ1_time_model,function(x)coef(x)[1,]))))
+RQ1_coefficients<- as.data.frame(t(as.data.frame(lapply(RQ1_time_model,function(x)coef(x)[2,])))) 
+
+
+#p.adjust(RQ1_coefficients$`Pr(>|t|)`, method = "holm")
+
+ 
+
+RQ1_coefficients <- rbind(as.data.frame(t(as.data.frame(lapply(RQ1_time_model,function(x)coef(x)[2,])))) ,
+                           
+                          t(as.data.frame(coef(RQ1_Reappraisal_t1)[2,])) %>% `rownames<-`(c("Embracing Mistakes (Image)")),
+
+                          t(as.data.frame(coef(RQ1_Reappraisal_t2)[2,])) %>% `rownames<-`(c("Embracing Mistakes (Video)")),
+                          
+                          t(as.data.frame(coef(RQ1_Comparison_t1)[2,])) %>% `rownames<-`(c("Social Comparison (Performance)")),
+                          
+                          t(as.data.frame(coef(RQ1_Comparison_t2)[2,])) %>% `rownames<-`(c("Social Comparison (Help Seeking)"))
+                          
+                          )
+
+RQ1_coefficients %>%
+        mutate(model=rownames(.)) %>%
+        arrange((rownames(.))) %>%
+  dplyr::select(model, everything()) %>% kableExtra::kable() %>%
+  kableExtra::kable_styling(position = "center")
+```
+# RQ2 Help Seeking 
+**Did the conditions increase the likelihood that students access hints during the activity?**
+```{r}
+# describe
+psych::describe(stud_ex$num_hints)
+
+
+RQ2_fun <- function(dat){
+  summary(glm(
+    num_hints > 0 ~ 
+      treatment,
+    data = dat,
+    family = binomial()
+  ))
+  }
+  
+RQ2_hints_models <- by(stud_ex %>%
+                   dplyr::select(
+                     num_hints,
+                     treatment
+                   ) %>%
+                   na.omit(),
+                  as.factor(stud_ex[!is.na(stud_ex$num_hints), ]$experiment),
+                 RQ2_fun)
+
+
+
+
+
+RQ2_intercepts<- as.data.frame(t(as.data.frame(lapply(RQ2_hints_models,function(x)coef(x)[1,]))))
+RQ2_coefficients<- as.data.frame(t(as.data.frame(lapply(RQ2_hints_models,function(x)coef(x)[2,]))))
+round(RQ2_coefficients, 3)
+
+p.adjust(RQ2_coefficients$`Pr(>|z|)`, method = "holm") %>%
+  kableExtra::kable() %>%
+  kableExtra::kable_styling(position = "center")
+
+
+
+
+```
+### Follow up by treatements
+``` {r}
+
+RQ2_Reappraisal_t1<-summary(glm(
+    num_hints > 0  ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Embracing Mistakes' & stud_ex$treatment2 !=1, ]
+  ), test= 'z')
+#RQ2_Reappraisal_t1
+
+RQ2_Reappraisal_t2<-summary(glm(
+    num_hints > 0 ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Embracing Mistakes' & stud_ex$treatment1 !=1, ]
+  ))
+#RQ2_Reappraisal_t2
+
+
+RQ2_Comparison_t1<-summary(glm(
+    num_hints > 0 ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Social Comparison' & stud_ex$treatment2 !=1, ]
+  ))
+#RQ2_Comparison_t1
+
+RQ2_Comparison_t2<-summary(glm(
+    num_hints > 0 ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Social Comparison' & stud_ex$treatment1 !=1, ]
+  ))
+#RQ2_Comparison_t2
+
+
+```
+
+### Extract Coeffecients
+```{r}
+
+RQ2_intercepts<- as.data.frame(t(as.data.frame(lapply(RQ2_hints_models,function(x)coef(x)[1,]))))
+RQ2_coefficients<- as.data.frame(t(as.data.frame(lapply(RQ2_hints_models,function(x)coef(x)[2,])))) 
+
+
+#p.adjust(RQ2_coefficients$`Pr(>|t|)`, method = "holm")
+
+
+
+RQ2_coefficients <- rbind(as.data.frame(t(as.data.frame(lapply(RQ2_hints_models,function(x)coef(x)[2,])))) ,
+                           
+                          
+ as.data.frame(t(coef(RQ2_Reappraisal_t1)[2,])) %>% 
+   `rownames<-`(c("Embracing Mistakes (Image)")) %>% dplyr::rename(`z value` = `t value`,
+                                            `Pr(>|z|)` = `Pr(>|t|)`)
+
+                          ,
+
+                          as.data.frame(t(coef(RQ2_Reappraisal_t2)[2,])) %>% `rownames<-`(c("Embracing Mistakes (Video)"))%>% dplyr::rename(`z value` = `t value`,
+                                            `Pr(>|z|)` = `Pr(>|t|)`),
+
+                          as.data.frame(t(coef(RQ2_Comparison_t1)[2,])) %>% `rownames<-`(c("Social Comparison (Performance)"))%>% dplyr::rename(`z value` = `t value`,
+                                            `Pr(>|z|)` = `Pr(>|t|)`),
+
+                          as.data.frame(t(coef(RQ2_Comparison_t2)[2,])) %>% `rownames<-`(c("Social Comparison (Help Seeking)"))%>% dplyr::rename(`z value` = `t value`,
+                                            `Pr(>|z|)` = `Pr(>|t|)`)
+                          
+                          )
+
+RQ2_coefficients %>%
+        mutate(model=rownames(.)) %>%
+        arrange((rownames(.))) %>%
+  dplyr::select(model, everything())  %>%
+  kableExtra::kable() %>%
+  kableExtra::kable_styling(position = "center")
+```
+
+# RQ3 Mastery: 
+**Did the conditions increase the likelihood that students completed the activity?**
+Pre-adusted p-values
+```{r}
+RQ3_func <- function(dat){
+  summary(glm(
+    mastery ~ 
+      treatment,
+    data = dat,
+    family = binomial()
+  ))
+  }
+  
+  
+R3_mastery_models <- by(stud_ex %>%
+                   dplyr::select(
+                     mastery,
+                     treatment
+                   ) %>%
+                   na.omit(),
+                  as.factor(stud_ex[!is.na(stud_ex$mastery), ]$experiment),
+                 RQ3_func)
+
+
+
+
+RQ3_intercepts<- as.data.frame(t(as.data.frame(lapply(R3_mastery_models,function(x)coef(x)[1,]))))
+RQ3_coefficients<- as.data.frame(t(as.data.frame(lapply(R3_mastery_models,function(x)coef(x)[2,]))))
+round(RQ3_coefficients, 2) %>%
+  kableExtra::kable() %>%
+  kableExtra::kable_styling(position = "center")
+
+#p.adjust(RQ3_coefficients$`Pr(>|z|)`, method = "holm")
+
+#R3_mastery_models
+```
+### Follow up by treatements
+``` {r}
+
+RQ3_Reappraisal_t1<-summary(glm(
+    mastery  ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Embracing Mistakes' & stud_ex$treatment2 !=1, ],
+    family = binomial()
+  ))
+#RQ3_Reappraisal_t1
+
+RQ3_Reappraisal_t2<-summary(glm(
+   mastery ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Embracing Mistakes' & stud_ex$treatment1 !=1, ],
+    family = binomial()
+  ))
+#RQ3_Reappraisal_t2
+
+
+RQ3_Comparison_t1<-summary(glm(
+    mastery ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Social Comparison' & stud_ex$treatment2 !=1, ],
+    family = binomial()
+  ))
+#RQ3_Comparison_t1
+
+RQ3_Comparison_t2<-summary(glm(
+    mastery ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Social Comparison' & stud_ex$treatment1 !=1, ],
+    family = binomial()
+  ))
+#RQ3_Comparison_t2
+
+
+```
+
+### Extract Coeffecients
+_(pre-adjusted p-values))
+
+```{r}
+
+RQ3_intercepts<- as.data.frame(t(as.data.frame(lapply(R3_mastery_models,function(x)coef(x)[1,]))))
+RQ3_coefficients<- as.data.frame(t(as.data.frame(lapply(R3_mastery_models,function(x)coef(x)[2,])))) 
+
+
+#p.adjust(RQ3_coefficients$`Pr(>|t|)`, method = "holm")
+
+
+RQ3_coefficients <- rbind(as.data.frame(t(as.data.frame(lapply(R3_mastery_models,function(x)coef(x)[2,])))) ,
+                          
+                          as.data.frame(t(coef(RQ3_Reappraisal_t1)[2,])) %>% `rownames<-`(c("Embracing Mistakes (Image)")) # %>% dplyr::rename(`z value` = `t value`, `Pr(>|z|)` = `Pr(>|t|)`)
+                          ,
+                          
+                          as.data.frame(t(coef(RQ3_Reappraisal_t2)[2,])) %>% `rownames<-`(c("Embracing Mistakes (Video)")) # %>% dplyr::rename(`z value` = `t value`,`Pr(>|z|)` = `Pr(>|t|)`)
+                          ,
+                          
+                          as.data.frame(t(coef(RQ3_Comparison_t1)[2,])) %>% `rownames<-`(c("Social Comparison (Performance)"))#  %>% dplyr::rename(`z value` = `t value`,`Pr(>|z|)` = `Pr(>|t|)`)
+                          ,
+                          
+                          as.data.frame(t(coef(RQ3_Comparison_t2)[2,])) %>% `rownames<-`(c("Social Comparison (Help Seeking)")) #%>% dplyr::rename(`z value` = `t value`, `Pr(>|z|)` = `Pr(>|t|)`)
+                        )
+
+RQ3_coefficients %>%
+        mutate(model=rownames(.)) %>%
+        arrange((rownames(.))) %>%
+  dplyr::mutate(`Pr(>|z|)` = round(`Pr(>|z|)`,5)) %>%
+  dplyr::select(model, everything()) %>%
+  kableExtra::kable() %>%
+  kableExtra::kable_styling(position = "center")
+```
+
+ 
+# RQ4.1 Effiency: 
+**Did the conditions impact problems to mastery?**
+
+pre-adjusted p-values
+```{r,  warning=FALSE}
+RQ4_1_func <- function(dat){
+  summary(lm(
+    scale(skb_problem_count)*(-1) ~ 
+      treatment,
+    data = dat
+  ))
+  }
+  
+  
+RQ4_1_efficiency_models <- by(stud_ex %>%
+                   dplyr::select(
+                     skb_problem_count,
+                     treatment,
+                     mastery
+                   ) %>%
+                     filter(
+                       mastery == "FALSE"
+                     ) %>%
+                   na.omit(),
+                  as.factor(stud_ex[(stud_ex$mastery == "FALSE"), ]$experiment),
+                 RQ4_1_func)
+#RQ4_1_efficiency_models
+
+RQ4_1_efficiency_models <- by(stud_ex %>%
+                   dplyr::select(
+                     skb_problem_count,
+                     treatment,
+                     mastery
+                   ) %>%
+                     filter(
+                       mastery == "TRUE"
+                     ) %>%
+                   na.omit(),
+                  as.factor(stud_ex[(stud_ex$mastery == "TRUE"), ]$experiment),
+                 RQ4_1_func)
+#RQ4_1_efficiency_models
+
+
+RQ4_1_intercepts<- as.data.frame(t(as.data.frame(lapply(RQ4_1_efficiency_models,function(x)coef(x)[1,]))))
+RQ4_1_coefficients<- as.data.frame(t(as.data.frame(lapply(RQ4_1_efficiency_models,function(x)coef(x)[2,]))))
+round(RQ4_1_coefficients, 2) %>%
+  kableExtra::kable() %>%
+  kableExtra::kable_styling(position = "center")
+
+#round(p.adjust(RQ4_1_coefficients$`Pr(>|t|)`, method = "holm"), 3) 
+
+
+```
+
+### Follow up by treatements
+```{r,  warning=FALSE}
+
+RQ4_1_Reappraisal_t1<-summary(lm(
+    scale(skb_problem_count)  ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Embracing Mistakes', ]
+  ))
+#RQ4_1_Reappraisal_t1
+
+RQ4_1_Reappraisal_t1<-summary(lm(
+    scale(skb_problem_count)*(-1)  ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Embracing Mistakes' & stud_ex$treatment2 !=1 &  stud_ex$mastery == "FALSE", ]
+  ), test= 'z')
+#RQ4_1_Reappraisal_t1
+
+RQ4_1_Reappraisal_t2<-summary(lm(
+   scale(skb_problem_count)*(-1) ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Embracing Mistakes' & stud_ex$treatment1 !=1 &  stud_ex$mastery == "FALSE", ]
+  ))
+#RQ4_1_Reappraisal_t2
+
+
+RQ4_1_Comparison_t1<-summary(lm(
+    scale(skb_problem_count)*(-1) ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Social Comparison' & stud_ex$treatment2 !=1 &  stud_ex$mastery == "FALSE", ]
+  ))
+#RQ4_1_Comparison_t1
+
+RQ4_1_Comparison_t2<-summary(glm(
+    scale(skb_problem_count)*(-1) ~ 
+      treatment,
+    data = stud_ex[stud_ex$experiment == 'Social Comparison' & stud_ex$treatment1 !=1 &  stud_ex$mastery == "FALSE", ]
+  ))
+#RQ4_1_Comparison_t2
+
+
+```
+
+### Extract Coeffecients
+adjusted p-values
+```{r,  warning=FALSE}
+
+RQ4_1_intercepts<- as.data.frame(t(as.data.frame(lapply(RQ4_1_efficiency_models,function(x)coef(x)[1,]))))
+RQ4_1_coefficients<- as.data.frame(t(as.data.frame(lapply(RQ4_1_efficiency_models,function(x)coef(x)[2,])))) 
+
+
+#p.adjust(RQ4_1_coefficients$`Pr(>|t|)`, method = "holm")
+
+
+RQ4_1_coefficients <- rbind(as.data.frame(t(as.data.frame(lapply(RQ4_1_efficiency_models,function(x)coef(x)[2,])))) ,
+                           
+                          
+ as.data.frame(t(coef(RQ4_1_Reappraisal_t1)[2,])) %>% 
+   `rownames<-`(c("Embracing Mistakes (Image)")) 
+
+                          ,
+
+                          as.data.frame(t(coef(RQ4_1_Reappraisal_t2)[2,])) %>% `rownames<-`(c("Embracing Mistakes (Video)")),
+
+                          as.data.frame(t(coef(RQ4_1_Comparison_t1)[2,])) %>% `rownames<-`(c("Social Comparison (Performance)")),
+
+                          as.data.frame(t(coef(RQ4_1_Comparison_t2)[2,])) %>% `rownames<-`(c("Social Comparison (Help Seeking)"))
+                          
+                          )
+
+RQ4_1_coefficients %>%
+        mutate(model=rownames(.)) %>%
+        arrange((rownames(.))) %>%
+  dplyr::mutate(`Pr(>|t|)` = round(`Pr(>|t|)`,5)) %>%
+  dplyr::select(model, everything()) %>%
+  kableExtra::kable() %>%
+  kableExtra::kable_styling(position = "center")
+```
+
+## RQ4_2 Post Test:
+
+
+### Clean
+```{r}
+dat_post <- dat %>%
+  filter(posttest == 1)
+
+```
+### models
+pre-adjusted p-values
+```{r, warning=FALSE, message=FALSE}
+RQ4_2_func <- function(dat){
+  summary(glmer(
+    correct ~ 
+      treatment
+    +(1|user_id)
+    +(1|problem_id),
+    data = dat,
+    family = binomial()
+  ))
+  }
+  
+  
+RQ4_2_post_models <- by(dat_post[dat_post$mastery == TRUE, ] ,
+                  as.factor(dat_post[dat_post$mastery == TRUE, ]$experiment),
+                 RQ4_2_func)
+
+
+
+
+RQ4_2_intercepts<- as.data.frame(t(as.data.frame(lapply(RQ4_2_post_models,function(x)coef(x)[1,]))))
+RQ4_2_coefficients<- as.data.frame(t(as.data.frame(lapply(RQ4_2_post_models,function(x)coef(x)[2,]))))
+round(RQ4_2_coefficients, 2)
+
+#p.adjust(RQ4_2_coefficients$`Pr(>|z|)`, method = "holm")
+
+```
+### Follow up by treatements
+``` {r}
+
+RQ4_2_Reappraisal_t1<-summary(glmer(
+    correct ~ 
+      treatment
+    +(1|user_id)
+    +(1|problem_id),
+    data = dat[dat$experiment == 'Embracing Mistakes' & dat$treatment2 !=1, ],
+    family = binomial()
+  ))
+#RQ4_2_Reappraisal_t1
+
+RQ4_2_Reappraisal_t2<-summary(glmer(
+    correct ~ 
+      treatment
+    +(1|user_id)
+    +(1|problem_id),
+    data = dat[dat$experiment == 'Embracing Mistakes' & dat$treatment1 !=1, ],
+    family = binomial()
+  ))
+
+#RQ4_2_Reappraisal_t2
+
+RQ4_2_Comparison_t1<-summary(glmer(
+    correct ~ 
+      treatment
+    +(1|user_id)
+    +(1|problem_id),
+    data = dat[dat$experiment == 'Social Comparison' & dat$treatment2 !=1, ],
+    family = binomial()
+  ))
+#RQ4_2_Reappraisal_t1
+
+RQ4_2_Comparison_t2<-summary(glmer(
+    correct ~ 
+      treatment
+    +(1|user_id)
+    +(1|problem_id),
+    data = dat[dat$experiment == 'Social Comparison' & dat$treatment1 !=1, ],
+    family = binomial()
+  ))
+#RQ4_2_Reappraisal_t2
+
+
+```
+
+### Extract Coeffecients
+pre-adjusted p-values
+```{r}
+
+RQ4_2_intercepts<- as.data.frame(t(as.data.frame(lapply(RQ4_2_post_models,function(x)coef(x)[1,]))))
+RQ4_2_coefficients<- as.data.frame(t(as.data.frame(lapply(RQ4_2_post_models,function(x)coef(x)[2,])))) 
+
+
+#p.adjust(RQ4_coefficients$`Pr(>|t|)`, method = "holm")
+
+
+RQ4_2_coefficients <- rbind(as.data.frame(t(as.data.frame(lapply(RQ4_2_post_models,function(x)coef(x)[2,])))) ,
+                           
+                          
+                          as.data.frame(t(coef(RQ4_2_Reappraisal_t1)[2,])) %>% `rownames<-`(c("Embracing Mistakes (Image)")) #%>%
+                            #dplyr::rename(`z value` = `t value`, `Pr(>|z|)` = `Pr(>|t|)`)
+                          ,
+
+                          as.data.frame(t(coef(RQ4_2_Reappraisal_t2)[2,])) %>% `rownames<-`(c("Embracing Mistakes (Video)")) #%>%
+                           # dplyr::rename(`z value` = `t value`, `Pr(>|z|)` = `Pr(>|t|)`)
+                            ,
+
+                          as.data.frame(t(coef(RQ4_2_Comparison_t1)[2,])) %>% `rownames<-`(c("Social Comparison (Performance)")) #%>%
+                          #  dplyr::rename(`z value` = `t value`, `Pr(>|z|)` = `Pr(>|t|)`)
+                            ,
+
+                          as.data.frame(t(coef(RQ4_2_Comparison_t2)[2,])) %>% `rownames<-`(c("Social Comparison (Help Seeking)")) # %>%
+                         #   dplyr::rename(`z value` = `t value`, `Pr(>|z|)` = `Pr(>|t|)`)
+                          
+                          )
+
+RQ4_2_coefficients %>%
+        mutate(model=rownames(.)) %>%
+        arrange((rownames(.))) %>%
+  dplyr::mutate(`Pr(>|z|)` = round(`Pr(>|z|)`,5)) %>%
+  dplyr::select(model, everything())
+```
+
+
+## Figure 1
+```{r, warnings = F}
+coefficients<-rbind(
+    RQ1_coefficients %>% mutate(experment = rownames(.), Outcome = "Response Time (log)") %>% dplyr::select(experment, Outcome, "Estimate", SE =  "Std. Error" , p ="Pr(>|t|)"),
+    RQ2_coefficients %>% mutate(experment = rownames(.),Outcome = "Hint Usage (log-odds)") %>% dplyr::select(experment, Outcome, "Estimate", SE =  "Std. Error" , p ="Pr(>|z|)"),
+    RQ3_coefficients %>% mutate(experment = rownames(.),Outcome = "Mastery (log-odds)") %>% dplyr::select(experment, Outcome, "Estimate", SE =  "Std. Error" , p ="Pr(>|z|)"),
+    RQ4_1_coefficients %>% mutate(experment = rownames(.),Outcome = "Efficiency (z-score)") %>% dplyr::select(experment, Outcome, "Estimate", SE =  "Std. Error" , p ="Pr(>|t|)"),
+        RQ4_2_coefficients %>% mutate(experment = rownames(.),Outcome = "Post-test (log-odds)") %>% dplyr::select(experment, Outcome, "Estimate", SE =  "Std. Error" , p ="Pr(>|z|)")
+) %>%
+  group_by(
+    experment
+  ) %>%
+  mutate(
+    p = format(round(p, 4), nsmall = 2),
+    p_holm = format(round(p.adjust(p,method = "holm"), 4), nsmall = 2),
+    sig_holm = ifelse(p_holm > .05, 1, 0),
+    p_dots = ifelse(p_holm > .05,  "",
+                    ifelse(p_holm > .01, "*",
+                           ifelse(p_holm > .001, "**", "***")))
+    # p_BH = format(round(p.adjust(p,method = "BH"), 4), nsmall = 2),
+    # sig_BH = ifelse(p_BH > .05, 1, 0), 
+  ) %>%
+  dplyr::rename(
+    "Effect Size" = Estimate
+  )
+# table(coefficients$Outcome)
+# coefficients$Outcome <- factor(coefficients$Outcome, levels =c("Response Time (log)", "Hint Usage (log-odds)", "Mastery (log-odds)", "Efficiency (z-score)", "Post-test (log-odds)"))
+# levels(as.factor(chartr( ".", " ", coefficients$experment)))
+# table(is.na(levels(as.factor(chartr( ".", " ", coefficients$experment)))))
+
+coefficients$experment <- factor(chartr( ".", " ", coefficients$experment), 
+                                 levels = c(
+                                   "Embracing Mistakes",
+                                   "Embracing Mistakes (Image)",
+                                   "Embracing Mistakes (Video)",
+                                   "Inspirational Quotes",
+                                   "Social Comparison",
+                                   "Social Comparison (Help Seeking)",
+                                   "Social Comparison (Performance)",
+                                   "Emotion Labeling",
+                                   "Confidence Judgments"
+                                 ))
+
+fig_1<-ggplot(coefficients,
+       aes(
+           x = `Effect Size`,
+           y = experment,
+           xmin = `Effect Size`-(SE*1.96),
+           xmax = `Effect Size`+(SE*1.96),
+           label = p_dots
+       )) +
+    geom_point(alpha = .8, size = .8) +
+    geom_errorbarh(height=.2, size = .7, alpha = .8) +
+    facet_grid(cols = vars(Outcome)) +
+    scale_y_discrete(limits = rev(levels(coefficients$experment))) +
+    geom_vline(xintercept = 0,  linetype="dotted") +
+    geom_text(nudge_x = .35, size = 4) +
+    coord_cartesian(xlim = c(-1.8, 1.8)) + 
+    theme_bw() +
+    labs(
+        caption = "* p < .05. ** p < .01. *** p < .001"
+    )
+# +
+#     theme(axis.title.y = element_blank(),
+#           axis.text.y = element_text(size=15),
+#           axis.text.x = element_text(size=12),
+#           strip.text.x = element_text(size = 15), 
+#           axis.title.x = element_text(size = 14),
+#           plot.caption = element_text(size = 12))
+        
+
+
+
+fig_1
+
+```
+
+
